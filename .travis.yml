@@ -1,0 +1,25 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  # Build tests
+  - docker build -t luissilva1111511/complex-client-test -f ./client/Dockerfile.dev ./client
+
+script:
+  # Run tests
+  - docker run -e CI=true luissilva1111511/complex-client-test npm test
+
+after_success:
+  # Build production images
+  - docker build -t luissilva1111511/complex-client ./client
+  - docker build -t luissilva1111511/complex-nginx ./nginx
+  - docker build -t luissilva1111511/complex-server ./server
+  - docker build -t luissilva1111511/complex-worker ./worker
+  # Log in into Docker Hub
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Publish production images
+  - docker push luissilva1111511/complex-client
+  - docker push luissilva1111511/complex-nginx
+  - docker push luissilva1111511/complex-server
+  - docker push luissilva1111511/complex-worker
